@@ -4,7 +4,7 @@
   <groupId>com.openkm</groupId>
   <artifactId>openkm</artifactId>
   <packaging>war</packaging>
-  <version>6.3.2</version>
+  <version>6.3.2-DEV</version>
   <name>OpenKM Web Application</name>
   <url>http://www.openkm.com</url>
   <description>OpenKM is powerful scalable Document Management System (DMS). OpenKM uses JBoss + J2EE + Ajax web (GWT) + Jackrabbit (lucene) open source technologies.</description>
@@ -183,7 +183,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-catalina</artifactId>
-      <version>7.0.61</version>
+      <version>7.0.27</version>
       <scope>provided</scope>
     </dependency>
 

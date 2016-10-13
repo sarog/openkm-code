@@ -315,14 +315,15 @@ public class LanguageServlet extends BaseServlet {
 	private void translate(String userId, HttpServletRequest request, HttpServletResponse response) throws ServletException,
 			IOException, DatabaseException {
 		log.debug("translate({}, {}, {})", new Object[] { userId, request, response });
+		Language langBase = LanguageDAO.findByPk(Language.DEFAULT); // English always it'll be used as a translations base
+		Set<Translation> translationsBase = langBase.getTranslations();
 		
 		if (WebUtils.getBoolean(request, "persist")) {
 			Set<Translation> newTranslations = new HashSet<Translation>();
-			Language langBase = LanguageDAO.findByPk(Language.DEFAULT);
 			Language lang = LanguageDAO.findByPk(request.getParameter("lg_id"));
 			
-			for (Translation translation : langBase.getTranslations()) {
-				String text = request.getParameter(translation.getTranslationId().getKey());
+			for (Translation translation : translationsBase) {
+				String text = request.getParameter(translation.getTranslationId().getModule() + "-" + translation.getTranslationId().getKey());
 				
 				if (text != null && !text.equals("")) {
 					Translation newTranslation = new Translation();
@@ -339,18 +340,40 @@ public class LanguageServlet extends BaseServlet {
 		} else {
 			ServletContext sc = getServletContext();
 			String lgId = WebUtils.getString(request, "lg_id");
+			String filter = WebUtils.getString(request, "filter");
 			Language langToTranslate = LanguageDAO.findByPk(lgId);
 			Map<String, String> translations = new HashMap<String, String>();
 			
-			for (Translation translation : langToTranslate.getTranslations()) {
-				translations.put(translation.getTranslationId().getKey(), translation.getText());
+			if (filter.isEmpty()) {
+				for (Translation translation : langToTranslate.getTranslations()) {
+					translations.put(translation.getTranslationId().getModule() + "-" + translation.getTranslationId().getKey(), translation.getText());
+				}
+			} else {
+				// Filter translationsBase
+				Set<Translation> translationsToRemove = new HashSet<Translation>();
+				for (Translation translation : translationsBase) {
+					if (!translation.getTranslationId().getKey().contains(filter)) {
+						translationsToRemove.add(translation);
+					}
+				}
+				translationsBase.removeAll(translationsToRemove);
+
+				// Filter others translations
+				for (Translation translation : langToTranslate.getTranslations()) {
+					if (translation.getTranslationId().getKey().contains(filter)) {
+						translations.put(translation.getTranslationId().getModule() + "-" + translation.getTranslationId().getKey(), translation.getText());
+					}
+				}
 			}
 			
+			sc.setAttribute("filter", filter);
 			sc.setAttribute("action", WebUtils.getString(request, "action"));
 			sc.setAttribute("persist", true);
 			sc.setAttribute("lg_id", lgId);
 			sc.setAttribute("langToTranslateName", langToTranslate.getName());
+			sc.setAttribute("langBaseName", langBase.getName());
 			sc.setAttribute("translations", translations);
+			sc.setAttribute("translationsBase", translationsBase);
 			sc.setAttribute("langBase", LanguageDAO.findByPk(Language.DEFAULT)); // English always it'll be used as a translations base
 			sc.getRequestDispatcher("/admin/translation_edit.jsp").forward(request, response);
 		}

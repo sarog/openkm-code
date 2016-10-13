@@ -3179,7 +3179,7 @@ public class ToolBar extends Composite implements OriginPanel, HasToolBarEvent, 
 	 */
 	public void changeView(int view, int newMainPanelView) {
 		boolean toolBarEnabled = true;
-		int mainPanelView = Main.get().mainPanel.getActualView();
+		int mainPanelView = Main.get().mainPanel.getActualView();	
 		
 		// Evaluates actual desktop view to put values
 		switch (mainPanelView) {
@@ -3350,11 +3350,16 @@ public class ToolBar extends Composite implements OriginPanel, HasToolBarEvent, 
 				break;
 		}
 		
+		if(Main.get().activeFolderTree.menuPopup != null){
+			// Sets the permission to menus		
+			propagateToolBarOptions();
+		}		
+				
 		// Enables before evaluate show icons, order is important because can
 		// evaluate
 		// icons if enabled is false always before evaluate icons must be
 		// enabled
-		enabled = true;
+		enabled = true;	
 		evaluateShowIcons(); // Evalues icons to show
 		enabled = toolBarEnabled;
 		actualView = view; // Sets the new view active
